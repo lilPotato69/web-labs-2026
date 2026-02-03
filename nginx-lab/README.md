@@ -17,7 +17,7 @@
 1. Клонировать репозиторий:
    ```bash
    git clone https://github.com/lilPotato69/web-labs-2026
-   cd nginx-lab
+   cd web-labs-2026/nginx-lab
 Запустить контейнеры:
 ```bash
 docker-compose up -d --build
