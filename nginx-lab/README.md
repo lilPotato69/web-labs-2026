@@ -16,7 +16,7 @@
 
 1. Клонировать репозиторий:
    ```bash
-   git clone <https://github.com/lilPotato69/web-labs-2026>
+   git clone https://github.com/lilPotato69/web-labs-2026
    cd nginx-lab
 Запустить контейнеры:
 ```bash
