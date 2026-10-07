@@ -1,12 +1,9 @@
 <?php
-require 'vendor/autoload.php';
+require 'QueueManager.php';
+require 'KafkaManager.php';
 
-use App\RedisExample;
-use App\ElasticExample;
-use App\ClickhouseExample;
-
-$name       = htmlspecialchars(trim($_POST['username'] ?? 'Без имени'));
-$date       = $_POST['date'] ?? date('Y-m-d');
+$name       = htmlspecialchars(trim($_POST['username'] ?? ''));
+$date       = $_POST['date'] ?? '';
 $route      = $_POST['route'] ?? 'city';
 $audioguide = isset($_POST['audioguide']) ? 1 : 0;
 $language   = $_POST['language'] ?? 'ru';
@@ -17,23 +14,24 @@ $data = [
     'route'      => $route,
     'audioguide' => $audioguide,
     'language'   => $language,
-    'created_at' => date('Y-m-d H:i:s')
+    'created_at' => date('Y-m-d H:i:s'),
 ];
 
-// 1. Redis — кэш последней записи + счётчик
-$redis = new RedisExample();
-$redis->setValue('last_excursion', json_encode($data, JSON_UNESCAPED_UNICODE));
-$redis->increment('excursion_count');
+// RabbitMQ
+try {
+    $q = new QueueManager();
+    $q->publish($data);
+} catch (\Throwable $e) {
+    error_log("RabbitMQ publish error: " . $e->getMessage());
+}
 
-// 2. Elasticsearch — индексируем запись (ВАРИАНТ 8: поиск)
-$elastic = new ElasticExample();
-$docId = time() . '_' . rand(1000, 9999);
-$elastic->indexDocument('excursions', $docId, $data);
+// Kafka
+try {
+    $k = new KafkaManager();
+    $k->publish($data);
+} catch (\Throwable $e) {
+    error_log("Kafka publish error: " . $e->getMessage());
+}
 
-// 3. ClickHouse — лог события
-$click = new ClickhouseExample();
-$click->ensureTable();
-$click->logEvent('excursion_created', $name, $route);
-
-header("Location: index.php");
+header("Location: index.php?published=1");
 exit();
