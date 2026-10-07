@@ -11,12 +11,13 @@ class QueueManager
     private $channel;
     private $mainQueue  = 'lab7_queue';
     private $errorQueue = 'lab7_errors';
+    private $user = 'lab7_user';
+    private $pass = 'lab7_pass';
 
     public function __construct()
     {
-        $this->connection = new AMQPStreamConnection('rabbitmq', 5672, 'guest', 'guest');
+        $this->connection = new AMQPStreamConnection('rabbitmq', 5672, $this->user, $this->pass);
         $this->channel = $this->connection->channel();
-        // durable = true — сохраняем очереди при перезапуске
         $this->channel->queue_declare($this->mainQueue, false, true, false, false);
         $this->channel->queue_declare($this->errorQueue, false, true, false, false);
     }
@@ -26,14 +27,13 @@ class QueueManager
         $queue = $isError ? $this->errorQueue : $this->mainQueue;
         $msg = new AMQPMessage(
             json_encode($data, JSON_UNESCAPED_UNICODE),
-            ['delivery_mode' => 2] // persistent
+            ['delivery_mode' => 2]
         );
         $this->channel->basic_publish($msg, '', $queue);
     }
 
     public function consume(callable $callback): void
     {
-        // qos=1 — берём по одному сообщению
         $this->channel->basic_qos(null, 1, null);
 
         $this->channel->basic_consume(
@@ -44,7 +44,6 @@ class QueueManager
                     $callback($data);
                     $msg->ack();
                 } catch (\Throwable $e) {
-                    // ШТРАФНОЕ: ошибка → во вторую очередь
                     $data['error'] = $e->getMessage();
                     $data['failed_at'] = date('Y-m-d H:i:s');
                     $this->publish($data, true);
@@ -61,12 +60,11 @@ class QueueManager
         }
     }
 
-    /** Публичная статистика через Management API */
     public function stats(): array
     {
         $client = new Client([
             'base_uri'    => 'http://rabbitmq:15672',
-            'auth'        => ['guest', 'guest'],
+            'auth'        => [$this->user, $this->pass],
             'timeout'     => 3.0,
             'http_errors' => false,
         ]);

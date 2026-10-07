@@ -22,14 +22,19 @@ services:
       - kafka
 
   rabbitmq:
-    image: soldevelo/rabbitmq:latest          # <-- ЗАМЕНА
+    image: rabbitmq:3-management
     container_name: lab7_rabbit
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=lab7_user
+      - RABBITMQ_DEFAULT_PASS=lab7_pass
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   zookeeper:
     image: soldevelo/zookeeper:3.9            # <-- ЗАМЕНА
@@ -40,7 +45,7 @@ services:
       - "2181:2181"
 
   kafka:
-    image: soldevelo/kafka:3.5                # <-- ЗАМЕНА
+    image: soldevelo/kafka:3.5
     container_name: lab7_kafka
     ports:
       - "9092:9092"
@@ -49,5 +54,6 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
     depends_on:
       - zookeeper
