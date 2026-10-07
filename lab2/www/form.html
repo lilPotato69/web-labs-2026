@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Запись на экскурсию</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="form-container">
+    <h1>🗺️ Запись на экскурсию</h1>
+
+    <form id="excursionForm">
+        <label for="name">Имя:</label>
+        <input type="text" id="name" name="name" placeholder="Введите ваше имя" required>
+
+        <label for="date">Дата экскурсии:</label>
+        <input type="date" id="date" name="date" required>
+
+        <label for="route">Маршрут:</label>
+        <select id="route" name="route">
+            <option value="city">Обзорная по городу</option>
+            <option value="museum">Музейный квартал</option>
+            <option value="park">Парки и набережные</option>
+            <option value="night">Ночная экскурсия</option>
+        </select>
+
+        <label class="checkbox-label">
+            <input type="checkbox" name="audioguide" id="audioguide">
+            Нужен аудиогид
+        </label>
+
+        <fieldset>
+            <legend>Язык экскурсии:</legend>
+            <label><input type="radio" name="lang" value="ru" checked> Русский</label>
+            <label><input type="radio" name="lang" value="en"> English</label>
+            <label><input type="radio" name="lang" value="de"> Deutsch</label>
+        </fieldset>
+
+        <button type="submit">Отправить заявку</button>
+    </form>
+
+    <div id="result"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

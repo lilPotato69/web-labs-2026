@@ -1,7 +1,5 @@
-version: "3.9"
-
 services:
-  web:
+  nginx:
     image: nginx:1.27-alpine
     container_name: lab2_nginx
     ports:
