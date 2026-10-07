@@ -1,70 +1,93 @@
 <?php
-require 'QueueManager.php';
+require 'db.php';
+require 'Excursion.php';
 
-// RabbitMQ — через Management API (штрафное задание)
-$rabbitStats = ['main' => 0, 'errors' => 0, 'error_msg' => null];
-try {
-    $qm = new QueueManager();
-    $rabbitStats = array_merge($rabbitStats, $qm->stats());
-} catch (\Throwable $e) {
-    $rabbitStats['error_msg'] = $e->getMessage();
+$excursion = new Excursion($pdo);
+
+// Обработка удаления
+if (isset($_GET['delete'])) {
+    $excursion->delete((int)$_GET['delete']);
+    header("Location: index.php");
+    exit();
 }
 
-// Чтение логов воркеров
-function countLog(string $file): int {
-    if (!file_exists($file)) return 0;
-    return count(file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
-}
-
-$processedRabbit = countLog('processed_rabbit.log');
-$processedKafka  = countLog('processed_kafka.log');
-$errorsRabbit    = countLog('errors_rabbit.log');
-$errorsKafka     = countLog('errors_kafka.log');
+// Фильтр
+$filter = $_GET['filter'] ?? 'all';
+$all = $excursion->getAll($filter);
+$stats = $excursion->getStats();
 ?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>ЛР-7: RabbitMQ + Kafka</title>
+    <title>Записи на экскурсии</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="form-container" style="max-width: 950px;">
-    <h2>🧪 ЛР-7: Асинхронная обработка через RabbitMQ и Kafka</h2>
+<div class="form-container" style="max-width: 900px;">
 
-    <?php if (isset($_GET['published'])): ?>
-        <div class="success-box">✅ Сообщение отправлено в обе очереди!</div>
+    <h2>Записи на экскурсии (БД)</h2>
+
+    <!-- Штрафное задание 4: Статистика -->
+    <div class="stats-box">
+        <h3>📊 Статистика</h3>
+        <ul>
+            <li>Всего записей: <b><?= $stats['total'] ?></b></li>
+            <li>С аудиогидом: <b><?= $stats['with_audioguide'] ?></b></li>
+            <li>На английском: <b><?= $stats['in_english'] ?></b></li>
+            <li>Сегодня: <b><?= $stats['today'] ?></b></li>
+        </ul>
+    </div>
+
+    <!-- Штрафное задание 3: Фильтр -->
+    <div class="filter-box">
+        <b>Фильтр:</b>
+        <a href="?filter=all" class="btn <?= $filter === 'all' ? 'active' : '' ?>">Все</a>
+        <a href="?filter=audioguide" class="btn <?= $filter === 'audioguide' ? 'active' : '' ?>">Только с аудиогидом</a>
+    </div>
+
+    <h3>Список записей <?= $filter === 'audioguide' ? '(с аудиогидом)' : '' ?>:</h3>
+
+    <?php if (empty($all)): ?>
+        <p>Записей пока нет.</p>
+    <?php else: ?>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Дата</th>
+                    <th>Маршрут</th>
+                    <th>Аудиогид</th>
+                    <th>Язык</th>
+                    <th>Создано</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($all as $row): ?>
+                <tr>
+                    <td><?= $row['id'] ?></td>
+                    <td><?= htmlspecialchars($row['name']) ?></td>
+                    <td><?= htmlspecialchars($row['date']) ?></td>
+                    <td><?= htmlspecialchars($row['route']) ?></td>
+                    <td><?= $row['audioguide'] ? '✅' : '—' ?></td>
+                    <td><?= htmlspecialchars($row['language']) ?></td>
+                    <td><?= htmlspecialchars($row['created_at']) ?></td>
+                    <td>
+                        <a href="?delete=<?= $row['id'] ?>"
+                           onclick="return confirm('Удалить запись?');"
+                           class="btn-delete">✕</a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
     <?php endif; ?>
 
-    <!-- ===================== RABBITMQ ===================== -->
-    <div class="stats-box">
-        <h3>🐇 RabbitMQ</h3>
-        <?php if ($rabbitStats['error_msg']): ?>
-            <p class="error-text">Ошибка подключения к Management API: <?= htmlspecialchars($rabbitStats['error_msg']) ?></p>
-        <?php else: ?>
-            <ul>
-                <li>📥 В основной очереди (<code>lab7_queue</code>): <b><?= $rabbitStats['main'] ?></b></li>
-                <li>⚠️ В очереди ошибок (<code>lab7_errors</code>): <b><?= $rabbitStats['errors'] ?></b></li>
-                <li>✅ Обработано воркером: <b><?= $processedRabbit ?></b></li>
-                <li>❌ Провалено: <b><?= $errorsRabbit ?></b></li>
-            </ul>
-            <p><a href="http://localhost:15672" target="_blank" class="btn">Открыть RabbitMQ Management</a></p>
-        <?php endif; ?>
-    </div>
-
-    <!-- ===================== KAFKA ===================== -->
-    <div class="api-box">
-        <h3>🦊 Apache Kafka</h3>
-        <ul>
-            <li>✅ Обработано воркером: <b><?= $processedKafka ?></b></li>
-            <li>❌ Провалено (в topic <code>lab7_errors</code>): <b><?= $errorsKafka ?></b></li>
-        </ul>
-        <p><small>Топики: <code>lab7_topic</code>, <code>lab7_errors</code></small></p>
-    </div>
-
     <div style="margin-top: 20px; text-align: center;">
-        <a href="form.html" class="btn">Отправить новое сообщение</a>
-        <a href="index.php" class="btn">🔄 Обновить статистику</a>
+        <a href="form.html" class="btn">Добавить запись</a>
+        <a href="http://localhost:8085" target="_blank" class="btn">Открыть Adminer</a>
     </div>
 </div>
 </body>
