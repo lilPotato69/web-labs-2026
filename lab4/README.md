@@ -26,7 +26,8 @@
 * **HTML5 / CSS3 / JavaScript (Vanilla, fetch)**
 
 ---
-
+![img.png](img.png)
+---
 ## 📁 Структура проекта
 
 ```text
