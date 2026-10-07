@@ -1,17 +1,17 @@
-# 🧑‍💻 Лабораторная работа №6
+# 🧑‍💻 Лабораторная работа №7
 
-**Тема:** Изучение нереляционных баз данных (Redis, Elasticsearch, ClickHouse) и взаимодействие с ними через API с помощью GuzzleClient.
-**Вариант:** 8. Запись на экскурсию → база **Elasticsearch** (новости/поиск по записям).
+**Тема:** Асинхронная обработка данных через очереди сообщений (RabbitMQ / Kafka).
+**Вариант:** 8 (чётный → RabbitMQ, но выполнено штрафное задание — обе системы).
 **Статус:** Выполнено основное задание + все штрафные задания.
 
 ---
 
 ## 🎯 Цель работы
 
-1. Закрепить навыки работы с HTTP-запросами и API-интерфейсами.
-2. Познакомиться с современными нереляционными СУБД: Redis, Elasticsearch, ClickHouse.
-3. Освоить взаимодействие с ними через GuzzleClient и официальные клиенты.
-4. Реализовать обмен данными между тремя NoSQL-базами и PHP-приложением.
+1. Научиться работать с очередями сообщений.
+2. Реализовать асинхронную обработку данных в PHP.
+3. Познакомиться с брокерами сообщений RabbitMQ и Apache Kafka.
+4. Создать producers (отправители) и consumers (обработчики) задач.
 
 ---
 
@@ -19,24 +19,25 @@
 
 * **Docker / Docker Compose**
 * **Nginx** (1.27-alpine)
-* **PHP-FPM** (8.2-fpm) + **Composer**
-* **GuzzleHttp** — HTTP-клиент для Elasticsearch и ClickHouse
-* **Predis** — клиент для Redis
-* **Redis 7** — кэш и счётчики
-* **Elasticsearch 8.10** — полнотекстовый поиск (основная БД варианта 8)
-* **ClickHouse 24** — лог событий
+* **PHP-FPM** (8.2-fpm) + Composer
+* **php-amqplib** — клиент RabbitMQ
+* **ext-rdkafka** — нативное расширение PHP для Kafka
+* **Guzzle** — HTTP-клиент (для Management API RabbitMQ)
+* **RabbitMQ 3** + Management UI
+* **Apache Kafka 3.7** (KRaft-режим, без Zookeeper)
 
 ---
+![img.png](img.png)
 ![img_1.png](img_1.png)
 ![img_2.png](img_2.png)
 ![img_3.png](img_3.png)
 ![img_4.png](img_4.png)
-![img_5.png](img_5.png)
 ---
+
 ## 📁 Структура проекта
 
 ```text
-lab6/
+lab7/
  ├── Dockerfile
  ├── docker-compose.yml
  ├── .gitignore
@@ -45,15 +46,13 @@ lab6/
  └── www/
       ├── composer.json
       ├── composer.lock
-      ├── vendor/                       # автозагрузка Composer (не в Git)
-      ├── src/
-      │    ├── Helpers/
-      │    │    └── ClientFactory.php   # фабрика Guzzle-клиентов
-      │    ├── RedisExample.php         # класс для работы с Redis
-      │    ├── ElasticExample.php       # класс для работы с Elasticsearch
-      │    └── ClickhouseExample.php    # класс для работы с ClickHouse
-      ├── index.php                     # главная: сводка + поиск + JSON из Redis
-      ├── form.html                     # форма записи на экскурсию
-      ├── process.php                   # обработчик: Redis + ES + ClickHouse
+      ├── vendor/
+      ├── QueueManager.php      # RabbitMQ producer + consumer + stats
+      ├── KafkaManager.php      # Kafka producer + consumer (rdkafka)
+      ├── process.php           # публикует в обе очереди
+      ├── worker_rabbit.php     # consumer RabbitMQ
+      ├── worker_kafka.php      # consumer Kafka
+      ├── index.php             # статистика по обеим системам
+      ├── form.html
       ├── style.css
       └── script.js
