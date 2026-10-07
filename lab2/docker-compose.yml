@@ -1,7 +1,7 @@
 services:
   nginx:
     image: nginx:1.27-alpine
-    container_name: lab3_nginx
+    container_name: lab2_nginx
     ports:
       - "8080:80"
     volumes:
@@ -12,7 +12,7 @@ services:
 
   php:
     image: php:8.2-fpm
-    container_name: lab3_php
+    container_name: lab2_php
     volumes:
       - ./www:/var/www/html
     expose:
