@@ -7,7 +7,7 @@ use GuzzleHttp\Psr7\Response;
 
 class ApiTest extends TestCase
 {
-    // --- 1. HTTP-тест через MockHandler ---
+    // --- 1. HTTP-тест через MockHandler (без реального запроса) ---
     public function testMockRequestReturns200(): void
     {
         $mock = new MockHandler([
@@ -23,11 +23,11 @@ class ApiTest extends TestCase
         $this->assertEquals('OK', (string)$response->getBody());
     }
 
-    // --- 2. Реальный HTTP-запрос к нашему Nginx ---
+    // --- 2. Реальный HTTP-запрос к сервису web (Nginx) ---
     public function testRealRequestToForm(): void
     {
         $client = new Client([
-            'base_uri'    => 'http://nginx',
+            'base_uri'    => 'http://web',
             'timeout'     => 5.0,
             'http_errors' => false,
         ]);

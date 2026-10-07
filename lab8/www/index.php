@@ -3,6 +3,7 @@ require 'db.php';
 require 'Excursion.php';
 
 $excursion = new Excursion($pdo);
+$excursion->createTable();
 
 // Обработка удаления
 if (isset($_GET['delete'])) {
@@ -14,7 +15,10 @@ if (isset($_GET['delete'])) {
 // Фильтр
 $filter = $_GET['filter'] ?? 'all';
 $all = $excursion->getAll($filter);
-$stats = $excursion->getStats();
+$stats = [
+    'total'          => $excursion->count(),
+    'with_audioguide' => count($excursion->getAll('audioguide')),
+];
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -28,18 +32,14 @@ $stats = $excursion->getStats();
 
     <h2>Записи на экскурсии (БД)</h2>
 
-    <!-- Штрафное задание 4: Статистика -->
     <div class="stats-box">
         <h3>📊 Статистика</h3>
         <ul>
             <li>Всего записей: <b><?= $stats['total'] ?></b></li>
             <li>С аудиогидом: <b><?= $stats['with_audioguide'] ?></b></li>
-            <li>На английском: <b><?= $stats['in_english'] ?></b></li>
-            <li>Сегодня: <b><?= $stats['today'] ?></b></li>
         </ul>
     </div>
 
-    <!-- Штрафное задание 3: Фильтр -->
     <div class="filter-box">
         <b>Фильтр:</b>
         <a href="?filter=all" class="btn <?= $filter === 'all' ? 'active' : '' ?>">Все</a>
@@ -87,7 +87,7 @@ $stats = $excursion->getStats();
 
     <div style="margin-top: 20px; text-align: center;">
         <a href="form.html" class="btn">Добавить запись</a>
-        <a href="http://localhost:8085" target="_blank" class="btn">Открыть Adminer</a>
+        <a href="http://localhost:8089" target="_blank" class="btn">Открыть Adminer</a>
     </div>
 </div>
 </body>

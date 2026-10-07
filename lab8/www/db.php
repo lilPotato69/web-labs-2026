@@ -1,8 +1,8 @@
 <?php
-$host = 'db';
-$db   = 'lab5_db';
-$user = 'lab5_user';
-$pass = 'lab5_pass';
+$host    = 'db';
+$db      = 'lab8_db';
+$user    = 'lab8_user';
+$pass    = 'lab8_pass';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
