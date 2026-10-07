@@ -1,0 +1,3 @@
+vendor/
+processed_*.log
+errors_*.log
