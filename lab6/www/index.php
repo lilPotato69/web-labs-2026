@@ -1,93 +1,87 @@
 <?php
-require 'db.php';
-require 'Excursion.php';
+require 'vendor/autoload.php';
 
-$excursion = new Excursion($pdo);
+use App\RedisExample;
+use App\ElasticExample;
+use App\ClickhouseExample;
 
-// Обработка удаления
-if (isset($_GET['delete'])) {
-    $excursion->delete((int)$_GET['delete']);
-    header("Location: index.php");
-    exit();
+$redis   = new RedisExample();
+$elastic = new ElasticExample();
+$click   = new ClickhouseExample();
+
+$last    = $redis->getValue('last_excursion');
+$count   = $redis->getValue('excursion_count') ?? 0;
+$esCount = $elastic->count('excursions');
+
+$search = trim($_GET['q'] ?? '');
+$hits = [];
+if ($search !== '') {
+    $hits = $elastic->search('excursions', [
+        'multi_match' => [
+            'query'  => $search,
+            'fields' => ['name', 'route', 'language']
+        ]
+    ]);
 }
 
-// Фильтр
-$filter = $_GET['filter'] ?? 'all';
-$all = $excursion->getAll($filter);
-$stats = $excursion->getStats();
+$click->ensureTable();
+$eventCount = $click->countEvents();
 ?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Записи на экскурсии</title>
+    <title>NoSQL лаба — Запись на экскурсию</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="form-container" style="max-width: 900px;">
+    <h2>🧪 ЛР-6: Redis + Elasticsearch + ClickHouse</h2>
 
-    <h2>Записи на экскурсии (БД)</h2>
-
-    <!-- Штрафное задание 4: Статистика -->
     <div class="stats-box">
-        <h3>📊 Статистика</h3>
+        <h3>📊 Сводка</h3>
         <ul>
-            <li>Всего записей: <b><?= $stats['total'] ?></b></li>
-            <li>С аудиогидом: <b><?= $stats['with_audioguide'] ?></b></li>
-            <li>На английском: <b><?= $stats['in_english'] ?></b></li>
-            <li>Сегодня: <b><?= $stats['today'] ?></b></li>
+            <li>🔴 <b>Redis</b> — счётчик записей: <b><?= htmlspecialchars($count) ?></b></li>
+            <li>🔍 <b>Elasticsearch</b> — документов в индексе: <b><?= $esCount ?></b></li>
+            <li>⚡️ <b>ClickHouse</b> — событий в логе: <b><?= $eventCount ?></b></li>
         </ul>
     </div>
 
-    <!-- Штрафное задание 3: Фильтр -->
-    <div class="filter-box">
-        <b>Фильтр:</b>
-        <a href="?filter=all" class="btn <?= $filter === 'all' ? 'active' : '' ?>">Все</a>
-        <a href="?filter=audioguide" class="btn <?= $filter === 'audioguide' ? 'active' : '' ?>">Только с аудиогидом</a>
-    </div>
-
-    <h3>Список записей <?= $filter === 'audioguide' ? '(с аудиогидом)' : '' ?>:</h3>
-
-    <?php if (empty($all)): ?>
-        <p>Записей пока нет.</p>
-    <?php else: ?>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Имя</th>
-                    <th>Дата</th>
-                    <th>Маршрут</th>
-                    <th>Аудиогид</th>
-                    <th>Язык</th>
-                    <th>Создано</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php foreach ($all as $row): ?>
-                <tr>
-                    <td><?= $row['id'] ?></td>
-                    <td><?= htmlspecialchars($row['name']) ?></td>
-                    <td><?= htmlspecialchars($row['date']) ?></td>
-                    <td><?= htmlspecialchars($row['route']) ?></td>
-                    <td><?= $row['audioguide'] ? '✅' : '—' ?></td>
-                    <td><?= htmlspecialchars($row['language']) ?></td>
-                    <td><?= htmlspecialchars($row['created_at']) ?></td>
-                    <td>
-                        <a href="?delete=<?= $row['id'] ?>"
-                           onclick="return confirm('Удалить запись?');"
-                           class="btn-delete">✕</a>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
+    <?php if ($last): ?>
+        <div class="success-box">
+            <h3>🔴 Последняя запись (из Redis)</h3>
+            <pre><?= htmlspecialchars(json_encode(json_decode($last, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
+        </div>
     <?php endif; ?>
 
+    <div class="api-box">
+        <h3>🔍 Поиск экскурсий в Elasticsearch (вариант 8)</h3>
+        <form method="GET" action="index.php">
+            <input type="text" name="q" placeholder="Например: Ivan, city, en..." value="<?= htmlspecialchars($search) ?>">
+            <button type="submit" class="btn">Найти</button>
+        </form>
+
+        <?php if ($search !== ''): ?>
+            <p><b>Найдено: <?= count($hits) ?></b></p>
+            <?php if (empty($hits)): ?>
+                <p>Ничего не найдено.</p>
+            <?php else: ?>
+                <ul>
+                    <?php foreach ($hits as $hit): ?>
+                        <li>
+                            <b><?= htmlspecialchars($hit['_source']['name']) ?></b>
+                            — <?= htmlspecialchars($hit['_source']['route']) ?>
+                            (<?= htmlspecialchars($hit['_source']['language']) ?>)
+                            <small>[score: <?= round($hit['_score'], 2) ?>]</small>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
+
     <div style="margin-top: 20px; text-align: center;">
-        <a href="form.html" class="btn">Добавить запись</a>
-        <a href="http://localhost:8085" target="_blank" class="btn">Открыть Adminer</a>
+        <a href="form.html" class="btn">Заполнить форму</a>
     </div>
 </div>
 </body>
