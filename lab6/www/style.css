@@ -250,3 +250,20 @@ button:active {
 .btn-delete:hover {
     color: #8e0000;
 }
+
+pre {
+    background: #263238;
+    color: #aed581;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+}
+
+.api-box input[type="text"] {
+    width: 70%;
+    padding: 8px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    margin-right: 8px;
+}
