@@ -1,7 +1,129 @@
-/* ... (оставь все стили из ЛР-2) ... */
+/* ===== Базовые стили (из ЛР-2) ===== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-/* Добавь эти блоки в конец файла style.css */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
 
+.form-container {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 450px;
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    color: #555;
+    font-weight: 500;
+}
+
+input[type="text"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+select:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+
+.checkbox-group,
+.radio-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.radio-group {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.radio-group p {
+    margin: 0 0 8px 0;
+    font-weight: 500;
+    color: #555;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+/* Кнопка с hover-эффектом */
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #357abd;
+    transform: scale(1.02);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+#result {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    display: none;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* ===== Дополнения для ЛР-3 ===== */
+
+/* Красный блок для ошибок валидации */
 .error-box {
     background-color: #ffebee;
     color: #c62828;
@@ -11,6 +133,12 @@
     border-left: 5px solid #c62828;
 }
 
+.error-box ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+/* Зелёный блок для успешных данных из сессии */
 .success-box {
     background-color: #e8f5e9;
     color: #2e7d32;
@@ -20,6 +148,17 @@
     border-left: 5px solid #2e7d32;
 }
 
+.success-box h3,
+.cookie-box h3 {
+    margin-top: 0;
+}
+
+.success-box ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+/* Жёлтый блок для куки */
 .cookie-box {
     background-color: #fff8e1;
     color: #f57f17;
@@ -29,13 +168,15 @@
     border-left: 5px solid #f57f17;
 }
 
+/* Таблица для view.php */
 .data-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 15px;
 }
 
-.data-table th, .data-table td {
+.data-table th,
+.data-table td {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: left;
@@ -50,6 +191,7 @@
     background-color: #f9f9f9;
 }
 
+/* Кнопки-ссылки */
 .btn {
     display: inline-block;
     padding: 10px 20px;
@@ -59,6 +201,9 @@
     border-radius: 8px;
     transition: background-color 0.3s;
     margin: 5px;
+    cursor: pointer;
+    border: none;
+    font-size: 16px;
 }
 
 .btn:hover {
