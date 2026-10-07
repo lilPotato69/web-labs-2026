@@ -7,39 +7,46 @@
 </head>
 <body>
 <div class="form-container">
-    <h1>🗺️ Запись на экскурсию</h1>
+    <h2>Запись на экскурсию</h2>
+    <!-- action указывает на PHP-скрипт, method="POST" -->
+    <form id="excursionForm" action="process.php" method="POST">
+        <div class="form-group">
+            <label for="username">Ваше имя:</label>
+            <input type="text" id="username" name="username" placeholder="Введите имя" required>
+        </div>
 
-    <form id="excursionForm">
-        <label for="name">Имя:</label>
-        <input type="text" id="name" name="name" placeholder="Введите ваше имя" required>
+        <div class="form-group">
+            <label for="date">Дата экскурсии:</label>
+            <input type="date" id="date" name="date" required>
+        </div>
 
-        <label for="date">Дата экскурсии:</label>
-        <input type="date" id="date" name="date" required>
+        <div class="form-group">
+            <label for="route">Маршрут:</label>
+            <select id="route" name="route">
+                <option value="city">Городской</option>
+                <option value="historical">Исторический</option>
+                <option value="nature">Природный</option>
+            </select>
+        </div>
 
-        <label for="route">Маршрут:</label>
-        <select id="route" name="route">
-            <option value="city">Обзорная по городу</option>
-            <option value="museum">Музейный квартал</option>
-            <option value="park">Парки и набережные</option>
-            <option value="night">Ночная экскурсия</option>
-        </select>
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="audioguide" name="audioguide">
+            <label for="audioguide">Нужен аудиогид</label>
+        </div>
 
-        <label class="checkbox-label">
-            <input type="checkbox" name="audioguide" id="audioguide">
-            Нужен аудиогид
-        </label>
+        <div class="form-group radio-group">
+            <p>Язык экскурсии:</p>
+            <label><input type="radio" name="language" value="ru" checked> Русский</label>
+            <label><input type="radio" name="language" value="en"> English</label>
+        </div>
 
-        <fieldset>
-            <legend>Язык экскурсии:</legend>
-            <label><input type="radio" name="lang" value="ru" checked> Русский</label>
-            <label><input type="radio" name="lang" value="en"> English</label>
-            <label><input type="radio" name="lang" value="de"> Deutsch</label>
-        </fieldset>
-
-        <button type="submit">Отправить заявку</button>
+        <button type="submit" id="submitBtn">Записаться</button>
     </form>
 
-    <div id="result"></div>
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="index.php">На главную</a> |
+        <a href="view.php">Посмотреть все записи</a>
+    </div>
 </div>
 
 <script src="script.js"></script>
