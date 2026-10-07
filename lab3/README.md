@@ -24,12 +24,11 @@
 * **HTML5 / CSS3 / JavaScript (Vanilla)**
 
 ---
-![img.png](img.png)
-![img_1.png](img_1.png)
-![img_5.png](img_5.png)
-![img_6.png](img_6.png)
-![img_7.png](img_7.png)
-![img_9.png](img_9.png)
+![img_10.png](img_10.png)
+![img_11.png](img_11.png)
+![img_12.png](img_12.png)
+![img_13.png](img_13.png)
+![img_14.png](img_14.png)
 ---
 ## 📁 Структура проекта
 
