@@ -1,0 +1,3 @@
+CREATE DATABASE IF NOT EXISTS lab8_test_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+GRANT ALL PRIVILEGES ON lab8_test_db.* TO 'lab8_user'@'%';
+FLUSH PRIVILEGES;
