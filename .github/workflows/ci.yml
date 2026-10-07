@@ -1,0 +1,47 @@
+name: PHP docker CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Show docker versions
+        run: docker --version && docker compose version
+
+      - name: Start containers (lab9)
+        working-directory: ./lab9
+        run: docker compose up -d --build
+
+      - name: Wait for services
+        run: sleep 20
+
+      - name: Check containers
+        working-directory: ./lab9
+        run: docker compose ps
+
+      - name: Install dependencies
+        working-directory: ./lab9
+        run: docker compose exec -T php composer install
+
+      - name: Run tests
+        working-directory: ./lab9
+        run: docker compose exec -T php vendor/bin/phpunit tests
+
+      - name: Show logs on error
+        if: failure()
+        working-directory: ./lab9
+        run: docker compose logs
+
+      - name: Stop containers
+        if: always()
+        working-directory: ./lab9
+        run: docker compose down
