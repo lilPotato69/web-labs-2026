@@ -1,87 +1,70 @@
 <?php
-require 'vendor/autoload.php';
+require 'QueueManager.php';
 
-use App\RedisExample;
-use App\ElasticExample;
-use App\ClickhouseExample;
-
-$redis   = new RedisExample();
-$elastic = new ElasticExample();
-$click   = new ClickhouseExample();
-
-$last    = $redis->getValue('last_excursion');
-$count   = $redis->getValue('excursion_count') ?? 0;
-$esCount = $elastic->count('excursions');
-
-$search = trim($_GET['q'] ?? '');
-$hits = [];
-if ($search !== '') {
-    $hits = $elastic->search('excursions', [
-        'multi_match' => [
-            'query'  => $search,
-            'fields' => ['name', 'route', 'language']
-        ]
-    ]);
+// RabbitMQ — через Management API (штрафное задание)
+$rabbitStats = ['main' => 0, 'errors' => 0, 'error_msg' => null];
+try {
+    $qm = new QueueManager();
+    $rabbitStats = array_merge($rabbitStats, $qm->stats());
+} catch (\Throwable $e) {
+    $rabbitStats['error_msg'] = $e->getMessage();
 }
 
-$click->ensureTable();
-$eventCount = $click->countEvents();
+// Чтение логов воркеров
+function countLog(string $file): int {
+    if (!file_exists($file)) return 0;
+    return count(file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+}
+
+$processedRabbit = countLog('processed_rabbit.log');
+$processedKafka  = countLog('processed_kafka.log');
+$errorsRabbit    = countLog('errors_rabbit.log');
+$errorsKafka     = countLog('errors_kafka.log');
 ?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>NoSQL лаба — Запись на экскурсию</title>
+    <title>ЛР-7: RabbitMQ + Kafka</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="form-container" style="max-width: 900px;">
-    <h2>🧪 ЛР-6: Redis + Elasticsearch + ClickHouse</h2>
+<div class="form-container" style="max-width: 950px;">
+    <h2>🧪 ЛР-7: Асинхронная обработка через RabbitMQ и Kafka</h2>
 
-    <div class="stats-box">
-        <h3>📊 Сводка</h3>
-        <ul>
-            <li>🔴 <b>Redis</b> — счётчик записей: <b><?= htmlspecialchars($count) ?></b></li>
-            <li>🔍 <b>Elasticsearch</b> — документов в индексе: <b><?= $esCount ?></b></li>
-            <li>⚡️ <b>ClickHouse</b> — событий в логе: <b><?= $eventCount ?></b></li>
-        </ul>
-    </div>
-
-    <?php if ($last): ?>
-        <div class="success-box">
-            <h3>🔴 Последняя запись (из Redis)</h3>
-            <pre><?= htmlspecialchars(json_encode(json_decode($last, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
-        </div>
+    <?php if (isset($_GET['published'])): ?>
+        <div class="success-box">✅ Сообщение отправлено в обе очереди!</div>
     <?php endif; ?>
 
-    <div class="api-box">
-        <h3>🔍 Поиск экскурсий в Elasticsearch (вариант 8)</h3>
-        <form method="GET" action="index.php">
-            <input type="text" name="q" placeholder="Например: Ivan, city, en..." value="<?= htmlspecialchars($search) ?>">
-            <button type="submit" class="btn">Найти</button>
-        </form>
-
-        <?php if ($search !== ''): ?>
-            <p><b>Найдено: <?= count($hits) ?></b></p>
-            <?php if (empty($hits)): ?>
-                <p>Ничего не найдено.</p>
-            <?php else: ?>
-                <ul>
-                    <?php foreach ($hits as $hit): ?>
-                        <li>
-                            <b><?= htmlspecialchars($hit['_source']['name']) ?></b>
-                            — <?= htmlspecialchars($hit['_source']['route']) ?>
-                            (<?= htmlspecialchars($hit['_source']['language']) ?>)
-                            <small>[score: <?= round($hit['_score'], 2) ?>]</small>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php endif; ?>
+    <!-- ===================== RABBITMQ ===================== -->
+    <div class="stats-box">
+        <h3>🐇 RabbitMQ</h3>
+        <?php if ($rabbitStats['error_msg']): ?>
+            <p class="error-text">Ошибка подключения к Management API: <?= htmlspecialchars($rabbitStats['error_msg']) ?></p>
+        <?php else: ?>
+            <ul>
+                <li>📥 В основной очереди (<code>lab7_queue</code>): <b><?= $rabbitStats['main'] ?></b></li>
+                <li>⚠️ В очереди ошибок (<code>lab7_errors</code>): <b><?= $rabbitStats['errors'] ?></b></li>
+                <li>✅ Обработано воркером: <b><?= $processedRabbit ?></b></li>
+                <li>❌ Провалено: <b><?= $errorsRabbit ?></b></li>
+            </ul>
+            <p><a href="http://localhost:15672" target="_blank" class="btn">Открыть RabbitMQ Management</a></p>
         <?php endif; ?>
     </div>
 
+    <!-- ===================== KAFKA ===================== -->
+    <div class="api-box">
+        <h3>🦊 Apache Kafka</h3>
+        <ul>
+            <li>✅ Обработано воркером: <b><?= $processedKafka ?></b></li>
+            <li>❌ Провалено (в topic <code>lab7_errors</code>): <b><?= $errorsKafka ?></b></li>
+        </ul>
+        <p><small>Топики: <code>lab7_topic</code>, <code>lab7_errors</code></small></p>
+    </div>
+
     <div style="margin-top: 20px; text-align: center;">
-        <a href="form.html" class="btn">Заполнить форму</a>
+        <a href="form.html" class="btn">Отправить новое сообщение</a>
+        <a href="index.php" class="btn">🔄 Обновить статистику</a>
     </div>
 </div>
 </body>
