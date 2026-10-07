@@ -1,54 +1,28 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Запись на экскурсию</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-<div class="form-container">
-    <h2>Запись на экскурсию</h2>
-    <!-- action указывает на PHP-скрипт, method="POST" -->
-    <form id="excursionForm" action="process.php" method="POST">
-        <div class="form-group">
-            <label for="username">Ваше имя:</label>
-            <input type="text" id="username" name="username" placeholder="Введите имя" required>
-        </div>
-
-        <div class="form-group">
-            <label for="date">Дата экскурсии:</label>
-            <input type="date" id="date" name="date" required>
-        </div>
-
-        <div class="form-group">
-            <label for="route">Маршрут:</label>
-            <select id="route" name="route">
-                <option value="city">Городской</option>
-                <option value="historical">Исторический</option>
-                <option value="nature">Природный</option>
-            </select>
-        </div>
-
-        <div class="form-group checkbox-group">
-            <input type="checkbox" id="audioguide" name="audioguide">
-            <label for="audioguide">Нужен аудиогид</label>
-        </div>
-
-        <div class="form-group radio-group">
-            <p>Язык экскурсии:</p>
-            <label><input type="radio" name="language" value="ru" checked> Русский</label>
-            <label><input type="radio" name="language" value="en"> English</label>
-        </div>
-
-        <button type="submit" id="submitBtn">Записаться</button>
-    </form>
-
-    <div style="margin-top: 20px; text-align: center;">
-        <a href="index.php">На главную</a> |
-        <a href="view.php">Посмотреть все записи</a>
+<form id="excursionForm" action="process.php" method="POST">
+    <div class="form-group">
+        <label for="username">Ваше имя:</label>
+        <input type="text" id="username" name="username" required>
     </div>
-</div>
-
-<script src="script.js"></script>
-</body>
-</html>
+    <div class="form-group">
+        <label for="date">Дата экскурсии:</label>
+        <input type="date" id="date" name="date" required>
+    </div>
+    <div class="form-group">
+        <label for="route">Маршрут:</label>
+        <select id="route" name="route">
+            <option value="city">Городской</option>
+            <option value="historical">Исторический</option>
+            <option value="nature">Природный</option>
+        </select>
+    </div>
+    <div class="form-group checkbox-group">
+        <input type="checkbox" id="audioguide" name="audioguide">
+        <label for="audioguide">Нужен аудиогид</label>
+    </div>
+    <div class="form-group radio-group">
+        <p>Язык экскурсии:</p>
+        <label><input type="radio" name="language" value="ru" checked> Русский</label>
+        <label><input type="radio" name="language" value="en"> English</label>
+    </div>
+    <button type="submit" class="btn">Записаться</button>
+</form>
