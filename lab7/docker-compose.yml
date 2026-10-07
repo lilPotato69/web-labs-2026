@@ -22,7 +22,7 @@ services:
       - kafka
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: soldevelo/rabbitmq:latest          # <-- ЗАМЕНА
     container_name: lab7_rabbit
     ports:
       - "5672:5672"
@@ -32,7 +32,7 @@ services:
       - RABBITMQ_DEFAULT_PASS=guest
 
   zookeeper:
-    image: bitnami/zookeeper:3.9
+    image: soldevelo/zookeeper:3.9            # <-- ЗАМЕНА
     container_name: lab7_zookeeper
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
@@ -40,7 +40,7 @@ services:
       - "2181:2181"
 
   kafka:
-    image: bitnami/kafka:3.5
+    image: soldevelo/kafka:3.5                # <-- ЗАМЕНА
     container_name: lab7_kafka
     ports:
       - "9092:9092"
