@@ -1,56 +1,52 @@
-# 🧑‍💻 Лабораторная работа №4
+# 🧑‍💻 Лабораторная работа №5
 
-**Тема:** Composer, классы и работа с публичным API.
-**Вариант:** 8. Запись на экскурсию → API OpenTripMap (достопримечательности).
+**Тема:** Работа с базой данных MySQL через PHP и Docker.
+**Вариант:** 8. Запись на экскурсию.
 **Статус:** Выполнено основное задание + все штрафные задания.
 
 ---
 
 ## 🎯 Цель работы
 
-1. Освоить Composer и структуру `vendor`.
-2. Научиться работать с классами и внешними библиотеками.
-3. Научиться получать и отображать данные из публичного API.
-4. Отработать работу с куками и пользовательской информацией.
+1. Научиться работать с базой данных MySQL через PHP.
+2. Создать таблицу для данных формы.
+3. Сохранять данные формы в базу данных.
+4. Выводить данные из базы на странице.
+5. Использовать классы PHP для работы с таблицей.
+6. Работать с Docker-контейнерами: nginx, PHP-FPM, MySQL, Adminer.
 
 ---
 
 ## 🛠 Стек технологий
 
 * **Docker / Docker Compose**
-* **Nginx** (1.27-alpine)
-* **PHP-FPM** (8.2-fpm)
-* **Composer** + **GuzzleHttp** (для HTTP-запросов к API)
-* **OpenTripMap API** — публичный API без регистрации
+* **Nginx** (1.27-alpine) — веб-сервер
+* **PHP-FPM** (8.2-fpm) + расширение `pdo_mysql`
+* **MySQL** (8.0)
+* **Adminer** — веб-интерфейс для работы с БД
 
 ---
-![img_1.png](img_1.png)
-![img_2.png](img_2.png)
-![img_3.png](img_3.png)
-![img_4.png](img_4.png)
-![img_5.png](img_5.png)
+![{4ED0EAD2-A383-4103-9FBA-673EC65922FF}.png](%7B4ED0EAD2-A383-4103-9FBA-673EC65922FF%7D.png)
+![{55744A12-92AB-40EE-84AB-FD03BDA3220B}.png](%7B55744A12-92AB-40EE-84AB-FD03BDA3220B%7D.png)
+![{4E268417-40AC-4405-AF15-29BA39D3CB7E}.png](%7B4E268417-40AC-4405-AF15-29BA39D3CB7E%7D.png)
+![{45F7135C-2315-4506-B32F-EBE424E8AD97}.png](%7B45F7135C-2315-4506-B32F-EBE424E8AD97%7D.png)
+![{B562B50D-BCA3-4190-BDEE-5BD58F9B99FE}.png](%7BB562B50D-BCA3-4190-BDEE-5BD58F9B99FE%7D.png)
+
 ---
 ## 📁 Структура проекта
 
 ```text
-lab4/
- ├── Dockerfile               # PHP-FPM с Composer и расширением curl
- ├── docker-compose.yml
- ├── .gitignore               # vendor/ и api_cache.json не коммитятся
+lab5/
+ ├── Dockerfile               # PHP-FPM с PDO MySQL
+ ├── docker-compose.yml       # 4 сервиса: web, php, db, adminer
+ ├── .gitignore
  ├── nginx/
  │    └── default.conf
  └── www/
-      ├── composer.json
-      ├── composer.lock
-      ├── vendor/             # автозагрузка Composer (не в Git)
-      ├── ApiClient.php       # класс-обёртка над Guzzle
-      ├── UserInfo.php        # класс со статическим методом getInfo()
-      ├── api_refresh.php     # AJAX-эндпоинт для кнопки "Обновить"
-      ├── index.php           # главная страница
-      ├── form.html           # форма (из ЛР-3)
-      ├── process.php         # обработчик формы + API + кеш + кука
-      ├── view.php            # просмотр всех записей (из ЛР-3)
-      ├── script.js           # alert + fetch "Обновить"
-      ├── style.css           # стили
-      ├── data.txt            # файл с записями
-      └── api_cache.json      # кеш ответа API (5 минут, не в Git)
+      ├── db.php              # подключение к БД через PDO
+      ├── Excursion.php       # класс для работы с таблицей
+      ├── index.php           # список записей + статистика + фильтр
+      ├── form.html           # HTML-форма
+      ├── process.php         # сохранение данных в БД
+      ├── style.css
+      └── script.js
